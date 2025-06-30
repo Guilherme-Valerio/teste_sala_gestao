@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Salas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Gestão de Salas de Reunião</h1>
+
+    <div>
+        <h2>Criar Sala</h2>
+        <input type="text" id="roomName" placeholder="Nome da Sala">
+        <button onclick="createRoom()">Criar</button>
+    </div>
+
+    <div>
+        <h2>Entrar na Sala</h2>
+        <input type="text" id="accessRoom" placeholder="Nome da Sala">
+        <input type="text" id="accessCode" placeholder="Código de Acesso">
+        <button onclick="accessRoom()">Entrar</button>
+    </div>
+
+    <div>
+        <h2>Salas Existentes</h2>
+        <ul id="roomList"></ul>
+    </div>
+
+    <div id="codeSection"></div>
+
+    <div id="codeForm" style="display:none; margin-top: 20px;">
+        <h3>Adicionar Código de Acesso</h3>
+        <input type="text" id="newAlias" placeholder="Apelido (opcional)">
+        <button onclick="addCode()">Adicionar Código</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
