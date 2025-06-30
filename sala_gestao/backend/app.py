@@ -12,19 +12,21 @@ with app.app_context():
 
 @app.route('/rooms', methods=['POST'])
 def create_room():
-    data = request.json
-    name = data.get('name')
+    data = request.json or {}
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'Room name is required'}), 400
     if Room.query.filter_by(name=name).first():
         return jsonify({'error': 'Room already exists'}), 400
     room = Room(name=name)
     db.session.add(room)
     db.session.commit()
-    return jsonify({'message': 'Room created'}), 201
+    return jsonify({'message': f'Room "{name}" created'}), 201
 
 @app.route('/rooms', methods=['GET'])
 def list_rooms():
     rooms = Room.query.all()
-    return jsonify([{'name': room.name} for room in rooms])
+    return jsonify([{'name': r.name} for r in rooms]), 200
 
 @app.route('/rooms/<room_name>', methods=['DELETE'])
 def delete_room(room_name):
@@ -33,23 +35,29 @@ def delete_room(room_name):
         return jsonify({'error': 'Room not found'}), 404
     db.session.delete(room)
     db.session.commit()
-    return jsonify({'message': 'Room deleted'}), 200
+    return jsonify({'message': f'Room "{room_name}" deleted'}), 200
 
 @app.route('/rooms/<room_name>/codes', methods=['POST'])
 def generate_code(room_name):
-    data = request.json
-    alias = data.get('alias')
+    data = request.json or {}
+    alias = data.get('alias', '').strip()
+
     room = Room.query.filter_by(name=room_name).first()
     if not room:
         return jsonify({'error': 'Room not found'}), 404
+
     if len(room.codes) >= 4:
-        return jsonify({'error': 'Room has reached maximum number of codes'}), 400
+        return jsonify({'error': 'Room has reached the maximum number of codes'}), 400
+
     if alias and any(c.alias == alias for c in room.codes):
         return jsonify({'error': 'Alias already exists in this room'}), 400
-    new_code = AccessCode(code=str(uuid.uuid4()), alias=alias, room=room)
-    db.session.add(new_code)
+
+    code = str(uuid.uuid4())
+    access_code = AccessCode(code=code, alias=alias or None, room=room)
+    db.session.add(access_code)
     db.session.commit()
-    return jsonify({'message': 'Code generated', 'code': new_code.code}), 201
+
+    return jsonify({'message': 'Code generated', 'code': code}), 201
 
 @app.route('/rooms/<room_name>/codes', methods=['GET'])
 def list_codes(room_name):
@@ -58,7 +66,7 @@ def list_codes(room_name):
         return jsonify({'error': 'Room not found'}), 404
     return jsonify([
         {'code': c.code, 'alias': c.alias} for c in room.codes
-    ])
+    ]), 200
 
 @app.route('/rooms/<room_name>/codes/<code_id>', methods=['DELETE'])
 def delete_code(room_name, code_id):
@@ -74,9 +82,10 @@ def delete_code(room_name, code_id):
 
 @app.route('/access', methods=['POST'])
 def access_room():
-    data = request.json
-    room_name = data.get('room_name')
-    code_input = data.get('code')
+    data = request.json or {}
+    room_name = data.get('room_name', '').strip()
+    code_input = data.get('code', '').strip()
+
     room = Room.query.filter_by(name=room_name).first()
     if room and any(c.code == code_input for c in room.codes):
         return jsonify({'message': 'Access granted'}), 200
