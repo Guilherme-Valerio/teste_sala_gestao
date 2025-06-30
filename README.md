@@ -53,3 +53,16 @@ Permitir:
 
 ```bash
 pip install -r requirements.txt
+```
+
+2. **Navegue até a pasta backend**
+
+```bash
+cd sala_gestao/backend
+```
+
+2. **Rode o código app.py**
+
+```bash
+python app.py
+```
